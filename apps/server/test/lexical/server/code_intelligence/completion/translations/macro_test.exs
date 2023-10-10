@@ -196,7 +196,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             defprotocol ${1:protocol name} do
+             defprotocol ${1:protocol_name} do
                $0
              end\
              """
@@ -222,7 +222,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             defimpl ${1:protocol name}, for: ${2:type} do
+             defimpl ${1:protocol_name}, for: ${2:struct_name} do
                $0
              end\
              """
@@ -238,7 +238,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.label == "defoverridable (Mark a function as overridable)"
       assert completion.insert_text_format == :snippet
 
-      assert apply_completion(completion) == "defoverridable ${1:keyword or behaviour} $0"
+      assert apply_completion(completion) == "defoverridable ${1:fun_arities_or_behaviour}"
     end
 
     test "defdelegate returns a snippet", %{project: project} do
@@ -250,7 +250,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.detail
       assert completion.label == "defdelegate (Define a delegate function)"
       assert completion.insert_text_format == :snippet
-      assert apply_completion(completion) == "defdelegate ${1:call}, to: ${2:module} $0"
+      assert apply_completion(completion) == "defdelegate ${1:call}(${2:args}), to: ${3:module}"
     end
 
     test "defguard returns a snippet", %{project: project} do
@@ -262,7 +262,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.detail
       assert completion.label == "defguard (Define a guard macro)"
       assert completion.insert_text_format == :snippet
-      assert apply_completion(completion) == "defguard ${1:call} $0"
+      assert apply_completion(completion) == "defguard ${1:guard}(${2:args}) when $0"
     end
 
     test "defguardp returns a snippet", %{project: project} do
@@ -274,7 +274,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.detail
       assert completion.label == "defguardp (Define a private guard macro)"
       assert completion.insert_text_format == :snippet
-      assert apply_completion(completion) == "defguardp ${1:call} $0"
+      assert apply_completion(completion) == "defguardp ${1:guard}(${2:args}) when $0"
     end
 
     test "defexception returns a snippet", %{project: project} do
@@ -286,7 +286,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.detail
       assert completion.label == "defexception (Define an exception)"
       assert completion.insert_text_format == :snippet
-      assert apply_completion(completion) == "defexception [${1:fields}] $0"
+      assert apply_completion(completion) == "defexception [${1::message}]"
     end
 
     test "defstruct returns a snippet", %{project: project} do
@@ -298,7 +298,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.detail
       assert completion.label == "defstruct (Define a struct)"
       assert completion.insert_text_format == :snippet
-      assert apply_completion(completion) == "defstruct [${1:fields}] $0"
+      assert apply_completion(completion) == "defstruct [${1:fields}]"
     end
 
     test "alias returns a snippet", %{project: project} do
@@ -308,7 +308,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("alias ")
 
       assert completion.detail
-      assert completion.label == "alias (alias a module's name)"
+      assert completion.label == "alias (Alias a module's name)"
       assert completion.insert_text_format == :snippet
       assert apply_completion(completion) == "alias $0"
     end
@@ -319,7 +319,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> complete("us|")
                |> fetch_completion("use ")
 
-      assert completion.label == "use (invoke another module's __using__ macro)"
+      assert completion.label == "use (Invoke another module's __using__ macro)"
       assert completion.insert_text_format == :snippet
       assert apply_completion(completion) == "use $0"
     end
@@ -331,7 +331,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("import")
 
       assert completion.detail
-      assert completion.label == "import (import a module's functions)"
+      assert completion.label == "import (Import a module's functions)"
       assert completion.insert_text_format == :snippet
       assert apply_completion(completion) == "import $0"
     end
@@ -343,7 +343,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("require")
 
       assert completion.detail
-      assert completion.label == "require (require a module's macros)"
+      assert completion.label == "require (Require a module's macros)"
       assert completion.insert_text_format == :snippet
       assert apply_completion(completion) == "require $0"
     end
@@ -359,7 +359,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             quote ${1:options} do
+             quote $1 do
                $0
              end\
              """
@@ -377,7 +377,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
 
       assert apply_completion(completion) == """
              receive do
-               ${1:message shape} -> $0
+               ${1:pattern} -> $0
              end\
              """
     end
@@ -406,11 +406,11 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("with")
 
       assert completion.detail
-      assert completion.label == "with block"
+      assert completion.label == "with (with statement)"
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             with ${1:match} do
+             with ${1:pattern} <- ${2:expression} do
                $0
              end\
              """
@@ -423,11 +423,11 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("if")
 
       assert completion.detail
-      assert completion.label == "if (If statement)"
+      assert completion.label == "if (if statement)"
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             if ${1:test} do
+             if $1 do
                $0
              end\
              """
@@ -440,11 +440,11 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("unless")
 
       assert completion.detail
-      assert completion.label == "unless (Unless statement)"
+      assert completion.label == "unless (unless statement)"
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             unless ${1:test} do
+             unless $1 do
                $0
              end\
              """
@@ -457,12 +457,12 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("case")
 
       assert completion.detail
-      assert completion.label == "case (Case statement)"
+      assert completion.label == "case (case statement)"
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             case ${1:test} do
-               ${2:match} -> $0
+             case $1 do
+               ${2:pattern} -> $0
              end\
              """
     end
@@ -474,7 +474,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
                |> fetch_completion("cond")
 
       assert completion.detail
-      assert completion.label == "cond (Cond statement)"
+      assert completion.label == "cond (cond statement)"
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
@@ -496,7 +496,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.MacroTest do
       assert completion.insert_text_format == :snippet
 
       assert apply_completion(completion) == """
-             for ${1:match} <- ${2:enumerable} do
+             for ${1:pattern} <- ${2:enumerable} do
                $0
              end\
              """
