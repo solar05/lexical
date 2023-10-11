@@ -5,6 +5,7 @@ defmodule Lexical.Server.CodeIntelligence.EntityTest do
   alias Lexical.RemoteControl.ProjectNodeSupervisor
   alias Lexical.Server.CodeIntelligence.Entity
 
+  import Lexical.Document.Line
   import Lexical.RemoteControl.Api.Messages
   import Lexical.Test.CodeSigil
   import Lexical.Test.CursorSupport
@@ -46,6 +47,7 @@ defmodule Lexical.Server.CodeIntelligence.EntityTest do
     RemoteControl.Api.register_listener(project, self(), [:all])
     RemoteControl.Api.schedule_compile(project, true)
     assert_receive project_compiled(), 5000
+    assert_receive index_ready(), 5000
 
     %{project: project}
   end
@@ -307,6 +309,45 @@ defmodule Lexical.Server.CodeIntelligence.EntityTest do
 
       assert uri =~ "/src/erlang.erl"
       assert definition_line =~ ~S[«binary_to_atom»(Binary)]
+    end
+  end
+
+  describe "references/2 for modules" do
+    setup [:with_referenced_file]
+
+    test "finds all references for a plain module", %{project: project} do
+      subject_module = ~q[
+        defmodule SomeModule do
+          alias MyDefinition|
+
+        end
+      ]
+      {:ok, _, locations} = references(project, subject_module)
+      assert length(locations) > 0
+
+      Enum.each(locations, fn %Location{} = location ->
+        line(text: text) = location.range.start.context_line
+        assert text =~ "MyDefinition"
+      end)
+    end
+
+    test "finds references for an aliased module", %{project: project} do
+      subject_module = ~q[
+        defmodule Subject do
+        alias MyDefinition, as: Def
+          def func do
+            Def|
+          end
+        end
+      ]
+
+      {:ok, _, locations} = references(project, subject_module)
+      assert length(locations) > 0
+
+      Enum.each(locations, fn %Location{} = location ->
+        line(text: text) = location.range.start.context_line
+        assert text =~ "MyDefinition"
+      end)
     end
   end
 
@@ -769,6 +810,14 @@ defmodule Lexical.Server.CodeIntelligence.EntityTest do
          {:ok, %Location{} = location} <-
            Entity.definition(project, document, position) do
       {:ok, location.document.uri, decorate(location.document, location.range)}
+    end
+  end
+
+  defp references(project, code) do
+    with {position, code} <- pop_cursor(code),
+         {:ok, document} <- subject_module(project, code),
+         {:ok, locations} <- Entity.references(project, document, position) do
+      {:ok, document, locations}
     end
   end
 end

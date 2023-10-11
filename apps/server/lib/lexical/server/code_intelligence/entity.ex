@@ -229,6 +229,12 @@ defmodule Lexical.Server.CodeIntelligence.Entity do
   # Catch-all:
   defp kind_of_alias(_), do: :module
 
+  def references(%Project{} = project, %Document{} = document, %Position{} = position) do
+    with {:ok, resolved, _range} <- resolve(document, position) do
+      RemoteControl.Api.references(project, resolved)
+    end
+  end
+
   @doc """
   Returns the source location of the entity at the given position in the document.
   """
@@ -238,7 +244,7 @@ defmodule Lexical.Server.CodeIntelligence.Entity do
     |> parse_location(document)
   end
 
-  defp parse_location(%ElixirSense.Location{} = location, document) do
+  defp parse_location(%ElixirSense.Location{} = location, %Document{} = document) do
     %{file: file, line: line, column: column} = location
     file_path = file || document.path
     uri = Document.Path.ensure_uri(file_path)
