@@ -114,7 +114,6 @@ defmodule Lexical.RemoteControl.Search.Store do
 
   # handle the result from `State.async_load/1`
   def handle_info({ref, result}, %State{async_load_ref: ref} = state) do
-    RemoteControl.Dispatch.broadcast(index_ready(project: state.project))
     {:noreply, State.async_load_complete(state, result)}
   end
 
