@@ -235,10 +235,10 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.ModuleOrBehavi
         use En|
       ]
 
-      completions = complete(project, source)
-      assert length(completions) == 2
-      assert {:ok, _} = fetch_completion(completions, insert_text: "ExUnit")
-      assert {:ok, _} = fetch_completion(completions, insert_text: "ExUnitProperties")
+      assert [ex_unit_completion, ex_unit_properties_completion] = complete(project, source)
+
+      assert apply_completion(ex_unit_completion) =~ "use ExUnit"
+      assert apply_completion(ex_unit_properties_completion) =~ "use ExUnitProperties"
     end
   end
 end

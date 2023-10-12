@@ -5,7 +5,6 @@ defmodule Lexical.Server.CodeIntelligence.Completion.BuilderTest do
   use ExUnit.Case, async: true
 
   import Lexical.Server.CodeIntelligence.Completion.Builder
-  import Lexical.Test.CodeSigil
   import Lexical.Test.CursorSupport
   import Lexical.Test.Fixtures
 
@@ -14,108 +13,6 @@ defmodule Lexical.Server.CodeIntelligence.Completion.BuilderTest do
     {position, document} = pop_cursor(text, as: :document)
     {:ok, env} = Env.new(project, document, position)
     env
-  end
-
-  describe "strip_struct_reference/1" do
-    test "with a reference followed by  __" do
-      {doc, _position} =
-        "%__"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "__"
-    end
-
-    test "with a reference followed by a module name" do
-      {doc, _position} =
-        "%Module"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "Module"
-    end
-
-    test "with a reference followed by a module and a dot" do
-      {doc, _position} =
-        "%Module."
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "Module."
-    end
-
-    test "with a reference followed by a nested module" do
-      {doc, _position} =
-        "%Module.Sub"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "Module.Sub"
-    end
-
-    test "with a reference followed by an alias" do
-      code = ~q[
-        alias Something.Else
-        %El|
-      ]t
-
-      {doc, _position} =
-        code
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "alias Something.Else\nEl"
-    end
-
-    test "on a line with two references, replacing the first" do
-      {doc, _position} =
-        "%First{} = %Se"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "%First{} = Se"
-    end
-
-    test "on a line with two references, replacing the second" do
-      {doc, _position} =
-        "%Fir| = %Second{}"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "Fir = %Second{}"
-    end
-
-    test "with a plain module" do
-      env = new_env("Module")
-      {doc, _position} = strip_struct_reference(env)
-
-      assert doc == env.document
-    end
-
-    test "with a plain module strip_struct_reference a dot" do
-      env = new_env("Module.")
-      {doc, _position} = strip_struct_reference(env)
-
-      assert doc == env.document
-    end
-
-    test "leaves leading spaces in place" do
-      {doc, _position} =
-        "     %Some"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "     Some"
-    end
-
-    test "works in a function definition" do
-      {doc, _position} =
-        "def my_function(%Lo|)"
-        |> new_env()
-        |> strip_struct_reference()
-
-      assert doc == "def my_function(Lo)"
-    end
   end
 
   def item(label, opts \\ []) do

@@ -92,9 +92,14 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.StructTest do
       ]
 
       assert [completion] = complete(project, source)
-
-      assert completion.insert_text == "User"
       assert completion.kind == :module
+
+      assert apply_completion(completion) == ~q[
+        defmodule TestModule do
+        alias Project.Structs.User
+
+        User
+      ]
     end
 
     test "should complete non-aliased correctly", %{project: project} do
@@ -244,8 +249,7 @@ defmodule Lexical.Server.CodeIntelligence.Completion.Translations.StructTest do
 
     test "can be aliased", %{project: project} do
       assert [completion] = complete(project, "alias Project.Structs.A|")
-
-      assert completion.insert_text == "Account"
+      assert apply_completion(completion) == "alias Project.Structs.Account"
     end
   end
 end

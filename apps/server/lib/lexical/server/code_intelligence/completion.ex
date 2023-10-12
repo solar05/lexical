@@ -71,10 +71,8 @@ defmodule Lexical.Server.CodeIntelligence.Completion do
         |> Enum.map(&Translatable.translate(&1, Builder, env))
 
       true ->
-        {document, position} = Builder.strip_struct_reference(env)
-
         project
-        |> RemoteControl.Api.complete(document, position)
+        |> RemoteControl.Api.complete(env.document, env.position)
         |> to_completion_items(project, env, context)
     end
   end
